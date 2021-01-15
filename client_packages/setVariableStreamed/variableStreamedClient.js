@@ -12,10 +12,12 @@ const getVariableStreamed = (key) => {
 
 const getVariableStreamedAsync = async (key, waitTime = 10) => {
   try {
-    while (entityTypeToPool[this.type].exists(this)) {
+    const type = this.type; // remember to prevent multiplayer object errors
+    while (entityTypeToPool[type].exists(this)) {
       if (this.variablesStreamed && typeof this.variablesStreamed[key] != "undefined") return this.variablesStreamed[key];
       await mp.game.waitAsync(waitTime);
     }
+    return null;
   } catch (error) {
     mp.log("[getVariableSteamedAsync] " + error.stack);
   }
@@ -33,7 +35,6 @@ mp.events.addDataHandlerStreamed = (key, func) => {
 mp.events.add("setVariableStreamed", (entityId, entityType, key, value) => {
   const entity = entityTypeToPool[entityType] ? entityTypeToPool[entityType].atRemoteId(entityId) : undefined;
 
-  mp.log("setVariableStreamed" + typeof entity)
   if (entity) {
     entity.variablesStreamed[key] = value;
     if (playerVariablesDataHandler[key]) playerVariablesDataHandler[key](entity, value);
