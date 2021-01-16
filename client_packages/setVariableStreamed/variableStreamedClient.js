@@ -6,11 +6,12 @@ const entityTypeToPool = {
   "ped": mp.peds
 };
 
-const getVariableStreamed = (key) => {
-  return this.variablesStreamed ? this.variablesStreamed[key] : undefined;
+const getVariableStreamed = function (key) {
+  mp.log("[variableSteamed.getVariableStreamed] " + this.player.type + " id " + this.player.remoteId + " key: " + key + " value: " + (this.player.variablesStreamed ? this.player.variablesStreamed[key] : "undefined"));
+  return this.player.variablesStreamed ? this.player.variablesStreamed[key] : undefined;
 };
 
-const getVariableStreamedAsync = async (key, waitTime = 10) => {
+const getVariableStreamedAsync = async function (key, waitTime = 10) {
   try {
     const type = this.type; // remember to prevent multiplayer object errors
     while (entityTypeToPool[type].exists(this)) {
@@ -19,7 +20,7 @@ const getVariableStreamedAsync = async (key, waitTime = 10) => {
     }
     return null;
   } catch (error) {
-    mp.log("[getVariableSteamedAsync] " + error.stack);
+    mp.log("[getVariableStreamedAsync] " + error.stack);
   }
 };
 
@@ -36,19 +37,32 @@ mp.events.add("setVariableStreamed", (entityId, entityType, key, value) => {
   const entity = entityTypeToPool[entityType] ? entityTypeToPool[entityType].atRemoteId(entityId) : undefined;
 
   if (entity) {
+    mp.log("[setVariableStreamed] setting " + key + " for " + entityType + " id " + entityId + " to value: " + value);
     entity.variablesStreamed[key] = value;
     if (playerVariablesDataHandler[key]) playerVariablesDataHandler[key](entity, value);
   }
 });
 
 mp.events.add("entityStreamIn", (entity) => {
-  if (entityTypeToPool[entity.type]) mp.events.callRemote("entityStreamIn", entity.type, entity.remoteId);
+  if (entityTypeToPool[entity.type]) {
+    /*if (!entity.variablesStreamed) {
+      entity.variablesStreamed = {};
+      entity.getVariableStreamed = getVariableStreamed.bind(entity);
+      entity.getVariableAsync = getVariableAsync.bind(entity);
+    }*/
+    mp.events.callRemote("entityStreamIn", entity.type, entity.remoteId);
+  }
+});
+
+mp.events.add("entityStreamOut", (entity) => {
+  if (entityTypeToPool[entity.type]) mp.events.callRemote("entityStreamOut", entity.type, entity.remoteId);
 });
 
 mp.events.add("playerJoin", (player) => {
+  mp.log("[setVarStreamed.playerJoin] remoteId: " + player.remoteId)
   player.variablesStreamed = {};
-  player.getVariableStreamed = getVariableStreamed.bind(player);
-  player.getVariableAsync = getVariableAsync.bind(player);
+  player.getVariableStreamed = getVariableStreamed.bind({ player: player });
+  player.getVariableAsync = getVariableAsync.bind({ player: player });
 });
 
 // Get variable async (waiting until variable is not undefined anymore)
