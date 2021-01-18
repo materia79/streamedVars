@@ -1,7 +1,13 @@
-const entityTypeToPool = {
+const entityStreamInTypeToPool = {
   "player": mp.players,
   "ped": mp.peds,
   "vehicle": mp.vehicles
+};
+
+const entityStreamOutTypeToPool = {
+  //"player": mp.players,
+  "ped": mp.peds,
+  //"vehicle": mp.vehicles
 };
 
 // Set a variable that is only sent to other players when they have that player with variable set streamed in
@@ -79,9 +85,9 @@ mp.events.add("playerQuit", (player) => {
 });
 
 mp.events.add("entityStreamIn", (player, entityType, entityId) => {
-  const entity = entityTypeToPool[entityType] ? entityTypeToPool[entityType].at(entityId) : false;
+  const entity = entityStreamInTypeToPool[entityType] ? entityStreamInTypeToPool[entityType].at(entityId) : false;
   
-  if (entity && entityTypeToPool[entityType].exists(entity)) { // DEBUG: console.log("[Core.entityStreamIn] " + player.name + " " + entityType + " " + entityId);
+  if (entity && entityStreamInTypeToPool[entityType].exists(entity)) { // DEBUG: console.log("[Core.entityStreamIn] " + player.name + " " + entityType + " " + entityId);
     console.log("[StreamIn] " + player.name + " (" + player.id + ") streamed in " + entity.type + " id " + entityId);
     if (entityType == "ped") {
       if (!entity.streamedPlayers) entity.streamedPlayers = []; // move to npcs
@@ -94,9 +100,9 @@ mp.events.add("entityStreamIn", (player, entityType, entityId) => {
 });
 
 mp.events.add("entityStreamOut", (player, entityType, entityId) => {
-  const entity = entityTypeToPool[entityType] ? entityTypeToPool[entityType].at(entityId) : false;
+  const entity = entityStreamOutTypeToPool[entityType] ? entityStreamOutTypeToPool[entityType].at(entityId) : false;
 
-  if (entity && entityTypeToPool[entityType].exists(entity)) { // DEBUG: console.log("[Core.entityStreamIn] " + player.name + " " + entityType + " " + entityId);
+  if (entity && entityStreamOutTypeToPool[entityType].exists(entity)) { // DEBUG: console.log("[Core.entityStreamIn] " + player.name + " " + entityType + " " + entityId);
     console.log("[StreamOut] " + player.name + " streamed out " + entity.type + " id " + entityId);
     if (entityType == "ped") {
       if (!entity.streamedPlayers) entity.streamedPlayers = []; // move to npcs

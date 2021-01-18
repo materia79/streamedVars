@@ -1,7 +1,7 @@
 // Streamed variables (sent and updated only to players in streaming range)
 const localPlayer = mp.players.local;
 const playerVariablesDataHandler = {};
-const entityTypeToPool = {
+const entityStreamInTypeToPool = {
   "player": mp.players,
   "ped": mp.peds,
   "vehicle": mp.vehicles
@@ -18,9 +18,10 @@ const getVariableStreamed = function (key) { // DEBUG: //mp.log("[variableStream
 };
 
 const getVariableStreamedAsync = async function (key, waitTime = 10) {
+  if (!this.entity.pool || !this.entity.pool.exists(this.entity)) return null;
   try {
     const type = this.entity.type; // remember to prevent multiplayer object errors
-    while (entityTypeToPool[type].exists(this.entity)) {
+    while (entityStreamInTypeToPool[type].exists(this.entity) && this.entity.handle) {
       if (this.entity.variablesStreamed && typeof this.entity.variablesStreamed[key] != "undefined") return this.entity.variablesStreamed[key];
       await mp.game.waitAsync(waitTime);
     }
@@ -46,7 +47,7 @@ mp.events.addDataHandlerStreamed = (key, func) => {
 };
 
 mp.events.add("setVariableStreamed", (entityId, entityType, key, value) => {
-  const entity = entityTypeToPool[entityType] ? entityTypeToPool[entityType].atRemoteId(entityId) : undefined;
+  const entity = entityStreamInTypeToPool[entityType] ? entityStreamInTypeToPool[entityType].atRemoteId(entityId) : undefined;
 
   if (entity) { // DEBUG: //mp.log("[setVariableStreamed] setting " + key + " for " + entityType + " id " + entityId + " to value: " + value);
     if (!entity.variablesStreamed) initEntity(entity); // everything else seem to be unreliable :c
@@ -56,16 +57,16 @@ mp.events.add("setVariableStreamed", (entityId, entityType, key, value) => {
 });
 
 mp.events.add("entityStreamIn", (entity) => {
-  if (entityTypeToPool[entity.type]) {
+  if (entityStreamInTypeToPool[entity.type]) {
+    entity.pool = entityStreamInTypeToPool[entity.type];
     if (!entity.variablesStreamed) initEntity(entity); // everything else seem to be unreliable :c
     mp.events.callRemote("entityStreamIn", entity.type, entity.remoteId);
   }
 });
 
 mp.events.add("entityStreamOut", (entity) => {
-  if (entityTypeToPool[entity.type]) mp.events.callRemote("entityStreamOut", entity.type, entity.remoteId);
+  if (entityStreamInTypeToPool[entity.type]) mp.events.callRemote("entityStreamOut", entity.type, entity.remoteId);
 });
-
 
 /* test works
 mp.events.addDataHandlerStreamed("selftest", (entity, value) => {
@@ -97,9 +98,9 @@ localPlayer.getVariableAsync = async (key, waitTime = 10) => {
 const getVariableAsync = async (key, waitTime = 10) => {
   let result = mp.players.exists(this) ? this.getVariable(key) : undefined;
 
-  while (entityTypeToPool[this.type].exists(this) && typeof result == "undefined") {
+  while (entityStreamInTypeToPool[this.type].exists(this) && typeof result == "undefined") {
     await mp.game.waitAsync(waitTime);
-    result = entityTypeToPool[this.type].exists(this) ? this.getVariable(key) : undefined;
+    result = entityStreamInTypeToPool[this.type].exists(this) ? this.getVariable(key) : undefined;
   }
   return result;
 };
