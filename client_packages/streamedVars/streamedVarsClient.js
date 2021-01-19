@@ -6,6 +6,11 @@ const entityStreamInTypeToPool = {
   "ped": mp.peds,
   "vehicle": mp.vehicles
 };
+const entityStreamOutTypeToPool = {
+  "player": mp.players,
+  "ped": mp.peds,
+  "vehicle": mp.vehicles
+};
 
 const initEntity = (entity) => {
   entity.variablesStreamed = {};
