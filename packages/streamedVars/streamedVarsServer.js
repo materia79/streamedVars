@@ -12,7 +12,7 @@ const entityStreamOutTypeToPool = {
 // Set a variable that is only sent to other players when they have that player with variable set streamed in
 mp.Player.prototype.setVariableStreamed = function (key, value) {
   if (this.variablesStreamed[key] == value) return console.log("[player.setVariableStreamed] value did not change!");
-  if (!this.streamed_players) this.streamed_players = []; // fix for unreliable entity.streamedPlayers sometimes
+  if (!this.streamed_players) this.streamed_players = [];
   this.variablesStreamed[key] = { value: value, lastValue: {} };
   this.call("setVariableStreamed", [this.id, this.type, key, value]);
 
@@ -29,8 +29,8 @@ mp.Player.prototype.getVariableStreamed = function (key) {
 };
 
 mp.Ped.prototype.setVariableStreamed = function (key, value) {
-  if (!this.variablesStreamed) this.variablesStreamed = {}; // move to npcs
-  if (!this.streamed_players) this.streamed_players = []; // fix for unreliable entity.streamedPlayers sometimes
+  if (!this.variablesStreamed) this.variablesStreamed = {};
+  if (!this.streamed_players) this.streamed_players = [];
 
   this.variablesStreamed[key] = { value: value, lastValue: {} };
 
@@ -48,8 +48,8 @@ mp.Ped.prototype.getVariableStreamed = function (key) {
 };
 
 mp.Vehicle.prototype.setVariableStreamed = function (key, value) {
-  if (!this.variablesStreamed) this.variablesStreamed = {}; // move to vehicles
-  if (!this.streamed_players) this.streamed_players = []; // fix for unreliable entity.streamedPlayers sometimes
+  if (!this.variablesStreamed) this.variablesStreamed = {};
+  if (!this.streamed_players) this.streamed_players = [];
   this.variablesStreamed[key] = { value: value, lastValue: {} };
 
   if (this.streamed_players.length) {
@@ -65,51 +65,49 @@ mp.Vehicle.prototype.getVariableStreamed = function (key) {
   return this.variablesStreamed[key] ? this.variablesStreamed[key].value : undefined;
 };
 
-const entityStreamIn = (player, entity) => {
-  for (let key in entity.variablesStreamed) {
-    if (!entity.variablesStreamed[key].lastValue[player.id] || entity.variablesStreamed[key].lastValue[player.id] != entity.variablesStreamed[key].value) {
-      player.call("setVariableStreamed", [entity.id, entity.type, key, entity.variablesStreamed[key].value]);
-      entity.variablesStreamed[key].lastValue[player.id] = entity.variablesStreamed[key].value;
-    }
-  }
-};
-
 mp.events.add("playerJoin", (player) => {
   player.variablesStreamed = {}; // move to login
-  player.pedsStreamed = [];
+  player.streamed_entities = [];
 });
 
 mp.events.add("playerQuit", (player) => {
-  player.pedsStreamed.forEach((ped) => {
-    ped.streamed_players = ped.streamed_players.filter(streamingPlayer => streamingPlayer != player);
+  player.streamed_entities.forEach((entity) => {
+    entity.streamed_players = entity.streamed_players.filter(streamingPlayer => streamingPlayer != player);
+    mp.events.call("entityStreamOut", player, entity.type, entity.id, entity);
+    Object.keys(entity.variablesStreamed).forEach((key) => { delete entity.variablesStreamed[key].lastValue[player.id]; });
   });
 });
 
-mp.events.add("entityStreamIn", (player, entityType, entityId) => {
+mp.events.add("esi", (player, entityType, entityId) => {
   const entity = entityStreamInTypeToPool[entityType] ? entityStreamInTypeToPool[entityType].at(entityId) : false;
   
   if (entity && entityStreamInTypeToPool[entityType].exists(entity)) { // DEBUG: console.log("[Core.entityStreamIn] " + player.name + " " + entityType + " " + entityId);
-    console.log("[StreamIn] " + player.name + " (" + player.id + ") streamed in " + entity.type + " id " + entityId);
-    //if (entityType == "ped") {
-      if (!entity.streamed_players) entity.streamed_players = []; // move to npcs
-      entity.streamed_players.push(player);
-      player.pedsStreamed.push(entity);
-    //}
+    mp.events.call("entityStreamIn", player, entityType, entityId, entity);
 
-    entityStreamIn(player, entity);
+    if (!entity.streamed_players) entity.streamed_players = [player];
+    else entity.streamed_players.push(player);
+    if (!player.streamed_entities) player.streamed_entities = [entity];
+    else player.streamed_entities.push(entity);
+
+    for (let key in entity.variablesStreamed) {
+      if (!entity.variablesStreamed[key].lastValue[player.id] || entity.variablesStreamed[key].lastValue[player.id] != entity.variablesStreamed[key].value) {
+        player.call("setVariableStreamed", [entity.id, entity.type, key, entity.variablesStreamed[key].value]);
+        entity.variablesStreamed[key].lastValue[player.id] = entity.variablesStreamed[key].value;
+      }
+    }
   }
 });
 
-mp.events.add("entityStreamOut", (player, entityType, entityId) => {
+mp.events.add("eso", (player, entityType, entityId) => {
   const entity = entityStreamOutTypeToPool[entityType] ? entityStreamOutTypeToPool[entityType].at(entityId) : false;
 
   if (entity && entityStreamOutTypeToPool[entityType].exists(entity)) { // DEBUG: console.log("[Core.entityStreamIn] " + player.name + " " + entityType + " " + entityId);
-    console.log("[StreamOut] " + player.name + " streamed out " + entity.type + " id " + entityId);
-    //if (entityType == "ped") {
-      if (!entity.streamed_players) entity.streamed_players = []; // move to npcs
-      entity.streamed_players = entity.streamed_players.filter(streamedPlayer => streamedPlayer != player);
-      player.pedsStreamed = player.pedsStreamed.filter(pedStreamed => pedStreamed != entity);
-    //}
+    mp.events.call("entityStreamOut", player, entityType, entityId, entity);
+
+    if (!entity.streamed_players) entity.streamed_players = [];
+    else entity.streamed_players = entity.streamed_players.filter(streamedPlayer => streamedPlayer != player);
+    if (!player.streamed_entities) player.streamed_entities = [];
+    else player.streamed_entities = player.streamed_entities.filter(streamedEntity => streamedEntity != entity);
   }
 });
 

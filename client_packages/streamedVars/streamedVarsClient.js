@@ -23,13 +23,19 @@ const getVariableStreamed = function (key) { // DEBUG: //mp.log("[variableStream
 };
 
 const getVariableStreamedAsync = async function (key, waitTime = 10) {
-  if (!this.entity.pool || !this.entity.pool.exists(this.entity)) return null;
+  if (!this.entity.pool || !this.entity.pool.exists(this.entity) || !this.entity.handle) return null;
+
   try {
+    const handle = this.entity.handle; // ped.controller change will cause the handle to change. the original entity remains though!
     const type = this.entity.type; // remember to prevent multiplayer object errors
-    while (entityStreamInTypeToPool[type].exists(this.entity) && this.entity.handle) {
-      if (this.entity.variablesStreamed && typeof this.entity.variablesStreamed[key] != "undefined") return this.entity.variablesStreamed[key];
+    while (entityStreamInTypeToPool[type].exists(this.entity) && this.entity.handle == handle) {
+      if (this.entity.variablesStreamed && typeof this.entity.variablesStreamed[key] != "undefined") {
+        //mp.log("[entity.getVariableStreamedAsync] remoteId: " + this.entity.remoteId + ", key: " + key + ", value: " + this.entity.variablesStreamed[key]);
+        return this.entity.variablesStreamed[key];
+      }
       await mp.game.waitAsync(waitTime);
     }
+    //mp.log("[entity.getVariableStreamedAsync] Lost handle for key: " + key + ", networkId: " + this.entity.networkId);
     return null;
   } catch (error) {
     mp.log("[getVariableStreamedAsync] " + error.stack);
@@ -65,12 +71,12 @@ mp.events.add("entityStreamIn", (entity) => {
   if (entityStreamInTypeToPool[entity.type]) {
     entity.pool = entityStreamInTypeToPool[entity.type];
     if (!entity.variablesStreamed) initEntity(entity); // everything else seem to be unreliable :c
-    mp.events.callRemote("entityStreamIn", entity.type, entity.remoteId);
+    mp.events.callRemote("esi", entity.type, entity.remoteId);
   }
 });
 
 mp.events.add("entityStreamOut", (entity) => {
-  if (entityStreamInTypeToPool[entity.type]) mp.events.callRemote("entityStreamOut", entity.type, entity.remoteId);
+  if (entityStreamInTypeToPool[entity.type]) mp.events.callRemote("eso", entity.type, entity.remoteId);
 });
 
 /* test works
