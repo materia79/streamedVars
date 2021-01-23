@@ -76,7 +76,7 @@ mp.events.add("entityStreamIn", (entity) => {
 });
 
 mp.events.add("entityStreamOut", (entity) => {
-  if (entityStreamInTypeToPool[entity.type]) mp.events.callRemote("eso", entity.type, entity.remoteId);
+  if (entityStreamInTypeToPool[entity.type]) mp.events.callRemote("eso", entity.type, entity.remoteId, entityStreamInTypeToPool[entity.type].streamed.length);
 });
 
 /* test works

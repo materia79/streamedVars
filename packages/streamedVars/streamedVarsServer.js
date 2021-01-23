@@ -98,16 +98,17 @@ mp.events.add("esi", (player, entityType, entityId) => {
   }
 });
 
-mp.events.add("eso", (player, entityType, entityId) => {
+mp.events.add("eso", (player, entityType, entityId, numSameEntityTypesStreamed) => {
   const entity = entityStreamOutTypeToPool[entityType] ? entityStreamOutTypeToPool[entityType].at(entityId) : false;
 
-  if (entity && entityStreamOutTypeToPool[entityType].exists(entity)) { // DEBUG: console.log("[Core.entityStreamIn] " + player.name + " " + entityType + " " + entityId);
-    mp.events.call("entityStreamOut", player, entityType, entityId, entity);
+  if (entity && entityStreamOutTypeToPool[entityType].exists(entity)) { // DEBUG: //console.log("[Core.entityStreamOut] " + player.name + " " + entityType + " " + entityId + " streamed now: " + numSameEntityTypesStreamed);
 
     if (!entity.streamed_players) entity.streamed_players = [];
     else entity.streamed_players = entity.streamed_players.filter(streamedPlayer => streamedPlayer != player);
     if (!player.streamed_entities) player.streamed_entities = [];
     else player.streamed_entities = player.streamed_entities.filter(streamedEntity => streamedEntity != entity);
+
+    mp.events.call("entityStreamOut", player, entityType, entityId, entity, numSameEntityTypesStreamed);
   }
 });
 
