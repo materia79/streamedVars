@@ -66,15 +66,20 @@ mp.Vehicle.prototype.getVariableStreamed = function (key) {
 };
 
 mp.events.add("playerJoin", (player) => {
-  player.variablesStreamed = {}; // move to login
-  player.streamed_entities = [];
+  player.variablesStreamed = {};  // all variables that are set on that players entity
+  player.entitiesStreamed = [];   // all entities that this player have streamed since he logged in
+  player.streamed_entities = [];  // all entities that this player have streamed right now
 });
 
 mp.events.add("playerQuit", (player) => {
   player.streamed_entities.forEach((entity) => {
     entity.streamed_players = entity.streamed_players.filter(streamingPlayer => streamingPlayer != player);
     mp.events.call("entityStreamOut", player, entity.type, entity.id, entity);
-    Object.keys(entity.variablesStreamed).forEach((key) => { delete entity.variablesStreamed[key].lastValue[player.id]; });
+  });
+  player.entitiesStreamed.forEach((entity) => {
+    Object.keys(entity.variablesStreamed).forEach((key) => {
+      delete entity.variablesStreamed[key].lastValue[player.id];
+    });
   });
 });
 
@@ -82,8 +87,9 @@ mp.events.add("esi", (player, entityType, entityId) => {
   const entity = entityStreamInTypeToPool[entityType] ? entityStreamInTypeToPool[entityType].at(entityId) : false;
   
   if (entity && entityStreamInTypeToPool[entityType].exists(entity)) { // DEBUG: console.log("[Core.entityStreamIn] " + player.name + " " + entityType + " " + entityId);
+    player.entitiesStreamed.push(entity);
     mp.events.call("entityStreamIn", player, entityType, entityId, entity);
-
+    
     if (!entity.streamed_players) entity.streamed_players = [player];
     else entity.streamed_players.push(player);
     if (!player.streamed_entities) player.streamed_entities = [entity];
