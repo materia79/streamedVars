@@ -87,13 +87,13 @@ mp.events.add("esi", (player, entityType, entityId) => {
   const entity = entityStreamInTypeToPool[entityType] ? entityStreamInTypeToPool[entityType].at(entityId) : false;
   
   if (entity && entityStreamInTypeToPool[entityType].exists(entity)) { // DEBUG: console.log("[Core.entityStreamIn] " + player.name + " " + entityType + " " + entityId);
-    player.entitiesStreamed.push(entity);
-    mp.events.call("entityStreamIn", player, entityType, entityId, entity);
-    
+
     if (!entity.streamed_players) entity.streamed_players = [player];
     else entity.streamed_players.push(player);
     if (!player.streamed_entities) player.streamed_entities = [entity];
     else player.streamed_entities.push(entity);
+
+    mp.events.call("entityStreamIn", player, entityType, entityId, entity);
 
     for (let key in entity.variablesStreamed) {
       if (!entity.variablesStreamed[key].lastValue[player.id] || entity.variablesStreamed[key].lastValue[player.id] != entity.variablesStreamed[key].value) {
