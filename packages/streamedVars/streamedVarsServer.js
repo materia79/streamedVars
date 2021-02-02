@@ -77,7 +77,7 @@ mp.events.add("playerQuit", (player) => {
     mp.events.call("entityStreamOut", player, entity.type, entity.id, entity);
   });
   Object.keys(player.entitiesStreamed).forEach((entityKey) => {
-    Object.keys(player.entitiesStreamed[entityKey].variablesStreamed).forEach((key) => { // DEBUG: //console.log("[streamedVars.playerQuit] delete entity " + entityKey + " key " + key);
+    if (player.entitiesStreamed[entityKey].variablesStreamed) Object.keys(player.entitiesStreamed[entityKey].variablesStreamed).forEach((key) => { // DEBUG: //console.log("[streamedVars.playerQuit] delete entity " + entityKey + " key " + key);
       delete player.entitiesStreamed[entityKey].variablesStreamed[key].lastValue[player.id];
     });
   });
