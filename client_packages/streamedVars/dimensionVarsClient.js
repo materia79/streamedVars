@@ -48,12 +48,13 @@ const getVariableDimensionAsync = async function (key) {
   }
 };
 
-mp.events.add('setDimVariable', (entityType, entityID, key, data) => {
-  if (!allowedEntities[entityType] || !mp[entityType + 's'].exists(parseInt(entityID))) return;
-  const entity = mp[entityType + 's'].atRemoteId(parseInt(entityID));
-  if (entity) {
+mp.events.add('setDimVariable', (entityType, entityId, key, value) => {
+  if (!allowedEntities[entityType] || !mp[entityType + 's'].exists(parseInt(entityId))) return;
+  const entity = mp[entityType + 's'].atRemoteId(parseInt(entityId));
+  if (entity) { // DEBUG: //
+    mp.log("[setVariableDimension] setting " + key + " for " + entityType + " id " + entityId + " to value: " + value);
     if (!entity.dimensionVariables) initEntity(entity);
-    entity.dimensionVariables[key] = data;
-    if (playerDataHandlers[key]) playerDataHandlers[key](entity, data);
+    entity.dimensionVariables[key] = value;
+    if (playerDataHandlers[key]) playerDataHandlers[key](entity, value);
   }
 });

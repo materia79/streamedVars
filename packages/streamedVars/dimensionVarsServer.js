@@ -1,4 +1,5 @@
 const entityTypes = ["players", "vehicles", "peds"];
+
 const setDimension = function (dim) {
   if (this.dimensionVariables) {
     Object.keys(this.dimensionVariables).forEach(key => {
@@ -6,12 +7,15 @@ const setDimension = function (dim) {
     });
     mp.players.forEachInDimension(this.dimension, p => syncDimensionVariables.bind({entity: this, player: p}));
   } else this.dimensionVariables = {};
+  /* //feature
   mp.events.call('entityDimensionChange', this, dim, this.dimension);
   mp.players.call('entityDimensionChange', [this, dim, this.dimension]);
+  */
   this.dimension = dim;
   if (this.type == 'player') updateDimensionVariables.bind({player: this, dimension: dim});
 }
 mp.Player.prototype.setDimension = mp.Vehicle.prototype.setDimension = mp.Ped.prototype.setDimension = setDimension;
+
 const getDimensionVariable = function (key) {
   if (!this.dimensionVariables) this.dimensionVariables = {};
   return mp[this.type + 's'].exists(this) && this.dimensionVariables[key] ? this.dimensionVariables[key].value : undefined;
@@ -31,7 +35,7 @@ const setDimensionVariable = function (key, data, persistent = false) {
 mp.Player.prototype.setDimensionVariable = mp.Vehicle.prototype.setDimensionVariable = mp.Ped.prototype.setDimensionVariable = setDimensionVariable;
 
 mp.events.add({
-  "playerReady": (player) => {
+  "playerJoin": (player) => {
     player.dimensionVariables = {};
     updateDimensionVariables.bind({player: player, dimension: player.dimension}); // In case there are variables in dimension 0
   },
@@ -56,10 +60,10 @@ const updateDimensionVariables = function () {
 
 const syncDimensionVariables = function () {
   if (this.entity.type == 'player' && this.player.id == this.entity.id) return;
-    if (!this.entity.dimensionVariables[key].lastValue[this.player.id] || this.entity.dimensionVariables[key].lastValue[this.player.id] != this.entity.dimensionVariables[key].value) {
-      this.player.call('setDimVariable', [this.entity.type, this.entity.id, key, data]);
-      this.entity.dimensionVariables[key].lastValue[this.player.id] = data;
-    }
+  if (!this.entity.dimensionVariables[key].lastValue[this.player.id] || this.entity.dimensionVariables[key].lastValue[this.player.id] != this.entity.dimensionVariables[key].value) {
+    this.player.call('setDimVariable', [this.entity.type, this.entity.id, key, data]);
+    this.entity.dimensionVariables[key].lastValue[this.player.id] = data;
+  }
 };
 
 const dimensionVarHandling = function () {
