@@ -7,7 +7,6 @@ mp.events.streamedEntityTypeToPool = streamedEntityTypeToPool;
 
 // Set a variable that is only sent to other players when they have that player with variable set streamed in
 const playerSetVarStreamed = function (key, value) {
-  if (!this.variablesStreamed) this.variablesStreamed = {};
   if (this.variablesStreamed[key] == value) return console.log(`[${this.type}.setVariableStreamed] value did not change!`);
   this.variablesStreamed[key] = { value: value, lastValue: {} };
   this.call("setVariableStreamed", [this.id, this.type, key, value]);
