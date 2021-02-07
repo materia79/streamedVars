@@ -1,15 +1,15 @@
 const entityTypes = ["players", "vehicles", "peds"];
 const setDimension = function (dim) {
   if (this.dimensionVariables) {
-    Object.key(this.dimensionVariables).forEach(key => {
+    Object.keys(this.dimensionVariables).forEach(key => {
       if (!this.dimensionVariables[key].persistent) delete this.dimensionVariables[key];
     });
-    mp.players.forEachInDimension(this.dimension, syncDimensionVariables.bind({entity: this}));
+    mp.players.forEachInDimension(this.dimension, p => syncDimensionVariables.bind({entity: this, player: p}));
   } else this.dimensionVariables = {};
   mp.events.call('entityDimensionChange', this, dim, this.dimension);
-  mp.events.callRemote('entityDimensionChange', this, dim, this.dimension);
+  mp.players.call('entityDimensionChange', [this, dim, this.dimension]);
   this.dimension = dim;
-  if (this.type == 'player') updateDimensionVariables(dim).bind({player: this});
+  if (this.type == 'player') updateDimensionVariables.bind({player: this, dimension: dim});
 }
 mp.Player.prototype.setDimension = mp.Vehicle.prototype.setDimension = mp.Ped.prototype.setDimension = setDimension;
 const getDimensionVariable = function (key) {
@@ -26,14 +26,14 @@ const setDimensionVariable = function (key, data, persistent = false) {
     value: data,
     persistent: persistent
   };
-  mp.players.forEachInDimension(this.dimension, syncDimensionVariables.bind({entity: this}));
+  mp.players.forEachInDimension(this.dimension, p => syncDimensionVariables.bind({entity: this, player: p}));
 }
 mp.Player.prototype.setDimensionVariable = mp.Vehicle.prototype.setDimensionVariable = mp.Ped.prototype.setDimensionVariable = setDimensionVariable;
 
 mp.events.add({
   "playerReady": (player) => {
     player.dimensionVariables = {};
-    updateDimensionVariables(player.dimension).bind({player: player}); // In case there are variables in dimension 0
+    updateDimensionVariables.bind({player: player, dimension: player.dimension}); // In case there are variables in dimension 0
   },
   "playerQuit": (player) => {
     mp.players.forEach(p => {
@@ -46,31 +46,50 @@ mp.events.add({
   }
 });
 
-const updateDimensionVariables = function (dim) {
+const updateDimensionVariables = function () {
   if (mp.players.exists(this.player)) {
     entityTypes.forEach(entityType => {
-      mp[entityType].forEachInDimension(dim, dimensionVarHandling.bind({player: this.player}))
+      mp[entityType].forEachInDimension(this.dimension, e => dimensionVarHandling.bind({player: this.player, entity: e}))
     });
   }
 };
 
-const syncDimensionVariables = function (player) {
-  if (this.entity.type == 'player' && player.id == this.entity.id) return;
-    if (!this.entity.dimensionVariables[key].lastValue[player.id] || this.entity.dimensionVariables[key].lastValue[player.id] != this.entity.dimensionVariables[key].value) {
-      player.call('setDimVariable', [this.entity.type, this.entity.id, key, data]);
-      this.entity.dimensionVariables[key].lastValue[player.id] = data;
+const syncDimensionVariables = function () {
+  if (this.entity.type == 'player' && this.player.id == this.entity.id) return;
+    if (!this.entity.dimensionVariables[key].lastValue[this.player.id] || this.entity.dimensionVariables[key].lastValue[this.player.id] != this.entity.dimensionVariables[key].value) {
+      this.player.call('setDimVariable', [this.entity.type, this.entity.id, key, data]);
+      this.entity.dimensionVariables[key].lastValue[this.player.id] = data;
     }
 };
 
-const dimensionVarHandling = function (entity) {
-  if (!entity.dimensionVariables) entity.dimensionVariables = {};
+const dimensionVarHandling = function () {
+  if (!this.entity.dimensionVariables) this.entity.dimensionVariables = {};
   else {
-    if (entity.type == 'player' && entity.id == this.player.id) return;
-    Object.keys(entity.dimensionVariables).forEach(key => {
-      if (!entity.dimensionVariables[key].lastValue[this.player.id] || entity.dimensionVariables[key].lastValue[this.player.id] != entity.dimensionVariables[key].value) {
-        this.player.call('setDimVariable', [entity.type, entity.id, key, entity.dimensionVariables[key].value]);
-        entity.dimensionVariables[key].lastValue[this.player.id] = entity.dimensionVariables[key].value;
+    if (this.entity.type == 'player' && this.entity.id == this.player.id) return;
+    Object.keys(this.entity.dimensionVariables).forEach(key => {
+      if (!this.entity.dimensionVariables[key].lastValue[this.player.id] || this.entity.dimensionVariables[key].lastValue[this.player.id] != this.entity.dimensionVariables[key].value) {
+        this.player.call('setDimVariable', [this.entity.type, this.entity.id, key, this.entity.dimensionVariables[key].value]);
+        this.entity.dimensionVariables[key].lastValue[this.player.id] = this.entity.dimensionVariables[key].value;
       }
     });
   }
 };
+/*
+mp.events.addCommand('testDim', (player) => {
+  let pos = player.position;
+  pos.x += 2;
+  pos.y += 2;
+  let v = mp.vehicles.new(mp.joaat("turismor"), pos,
+  {
+      numberPlate: "ADMIN",
+      color: [[255, 0, 0],[255,0,0]],
+      dimension: player.dimension
+  });
+  player.outputChatBox('Setting Dimension variable for veh ' + v.id);
+  v.setDimensionVariable("key1", "hello", true);
+  // v.setDimension(6); // Makes key1 undefined
+  setTimeout(_ => {
+    player.outputChatBox('Getting Dimension variable ' + v.getDimensionVariable('key1'));
+  }, 3500);
+});
+*/

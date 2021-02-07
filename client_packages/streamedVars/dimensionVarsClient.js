@@ -24,8 +24,8 @@ mp.events.addDataHandlerDimension = (key, func) => {
 
 const initEntity = (entity) => {
   entity.dimensionVariables = {};
-  entity.getVariableStreamed = getVariableDimension.bind({ entity: entity });
-  entity.getVariableStreamedAsync = getVariableDimensionAsync.bind({ entity: entity });
+  entity.getVariableDimension = getVariableDimension.bind({ entity: entity });
+  entity.getVariableDimensionAsync = getVariableDimensionAsync.bind({ entity: entity });
 };
 
 const getVariableDimension = function (key) {
