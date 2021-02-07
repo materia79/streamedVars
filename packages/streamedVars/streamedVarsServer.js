@@ -1,90 +1,61 @@
-const entityTypeToPool = {
+const streamedEntityTypeToPool = {
   "player": mp.players,
   "ped": mp.peds,
   "vehicle": mp.vehicles
 };
-
-/* TODO: Remove if doesnt affect.
-mp.Player.prototype.setVariableStreamed = function (key, value) {
-  if (this.variablesStreamed[key] == value) return console.log("[player.setVariableStreamed] value did not change!");
-  if (!this.streamed_players) this.streamed_players = [];
-  this.variablesStreamed[key] = { value: value, lastValue: {} };
-  this.call("setVariableStreamed", [this.id, this.type, key, value]);
-
-  if (this.streamed_players.length) {
-    this.streamed_players.forEach((player) => {
-      if (mp.players.exists(player)) this.variablesStreamed[key].lastValue[player.id] = value;
-    });
-    mp.players.call(this.streamed_players, "setVariableStreamed", [this.id, this.type, key, value]);
-  }
-};
-
-mp.Ped.prototype.setVariableStreamed = function (key, value) {
-  if (!this.variablesStreamed) this.variablesStreamed = {};
-  if (!this.streamed_players) this.streamed_players = [];
-
-  this.variablesStreamed[key] = { value: value, lastValue: {} };
-
-  if (this.streamed_players.length) {
-    this.streamed_players.forEach((player) => {
-      this.variablesStreamed[key].lastValue[player.id] = value;
-    });
-    mp.players.call(this.streamed_players, "setVariableStreamed", [this.id, this.type, key, value]);
-  }
-};
-
-mp.Vehicle.prototype.setVariableStreamed = function (key, value) {
-  if (!this.variablesStreamed) this.variablesStreamed = {};
-  if (!this.streamed_players) this.streamed_players = [];
-  this.variablesStreamed[key] = { value: value, lastValue: {} };
-
-  if (this.streamed_players.length) {
-    this.streamed_players.forEach((player) => {
-      this.variablesStreamed[key].lastValue[player.id] = value;
-    });
-    mp.players.call(this.streamed_players, "setVariableStreamed", [this.id, this.type, key, value]);
-  }
-};
-*/
-
-/* TODO: Remove if doesnt affect.
-mp.Player.prototype.getVariableStreamed = function (key) {
-  return this.variablesStreamed[key] ? this.variablesStreamed[key].value : undefined;
-};
-
-mp.Ped.prototype.getVariableStreamed = function (key) {
-  if (!this.variablesStreamed) this.variablesStreamed = {}; // move to npcs
-  return this.variablesStreamed[key] ? this.variablesStreamed[key].value : undefined;
-};
-
-mp.Vehicle.prototype.getVariableStreamed = function (key) {
-  if (!this.variablesStreamed) this.variablesStreamed = {}; // move to vehicles
-  return this.variablesStreamed[key] ? this.variablesStreamed[key].value : undefined;
-};
-*/
+mp.events.streamedEntityTypeToPool = streamedEntityTypeToPool;
 
 // Set a variable that is only sent to other players when they have that player with variable set streamed in
-const setVarStreamed = function (key, value) {
+const playerSetVarStreamed = function (key, value) {
   if (!this.variablesStreamed) this.variablesStreamed = {};
-  if (!this.streamed_players) this.streamed_players = [];
   if (this.variablesStreamed[key] == value) return console.log(`[${this.type}.setVariableStreamed] value did not change!`);
   this.variablesStreamed[key] = { value: value, lastValue: {} };
-  if (this.type == "player") this.call("setVariableStreamed", [this.id, this.type, key, value]);
-
-  if (this.streamed_players.length) {
+  this.call("setVariableStreamed", [this.id, this.type, key, value]);
+  
+  if (!this.streamed_players) this.streamed_players = [];
+  else if (this.streamed_players.length) {
     this.streamed_players.forEach((player) => {
       if (mp.players.exists(player)) this.variablesStreamed[key].lastValue[player.id] = value;
     });
     mp.players.call(this.streamed_players, "setVariableStreamed", [this.id, this.type, key, value]);
   }
 };
-mp.Vehicle.prototype.setVariableStreamed = mp.Ped.prototype.setVariableStreamed = mp.Player.prototype.setVariableStreamed = setVarStreamed;
 
-const getVarStreamed = function (key) {
+const entitySetVarStreamed = function (key, value) {
+  if (!this.variablesStreamed) this.variablesStreamed = {};
+  if (this.variablesStreamed[key] == value) return console.log(`[${this.type}.setVariableStreamed] value did not change!`);
+  this.variablesStreamed[key] = { value: value, lastValue: {} };
+  
+  if (!this.streamed_players) this.streamed_players = [];
+  else if (this.streamed_players.length) {
+    this.streamed_players.forEach((player) => {
+      if (mp.players.exists(player)) this.variablesStreamed[key].lastValue[player.id] = value;
+    });
+    mp.players.call(this.streamed_players, "setVariableStreamed", [this.id, this.type, key, value]);
+  }
+};
+mp.Player.prototype.setVariableStreamed = playerSetVarStreamed;
+mp.Vehicle.prototype.setVariableStreamed = mp.Ped.prototype.setVariableStreamed = entitySetVarStreamed;
+
+const playerGetVarStreamed = function (key) {
+  return this.variablesStreamed[key] ? this.variablesStreamed[key].value : undefined;
+};
+
+const entityGetVarStreamed = function (key) {
   if (!this.variablesStreamed) this.variablesStreamed = {};
   return this.variablesStreamed[key] ? this.variablesStreamed[key].value : undefined;
 };
-mp.Vehicle.prototype.getVariableStreamed = mp.Ped.prototype.getVariableStreamed = mp.Player.prototype.getVariableStreamed = getVarStreamed;
+mp.Player.prototype.getVariableStreamed = playerGetVarStreamed;
+mp.Vehicle.prototype.getVariableStreamed = mp.Ped.prototype.getVariableStreamed = entityGetVarStreamed;
+
+const destroyStreamed = function () {
+  mp.players.forEach((player) => {
+    if (player.entitiesStreamed) delete player.entitiesStreamed[this.type + this.id];
+    if (player.streamed_entities) player.streamed_entities = player.streamed_entities.filter(entity => entity != this);
+  });
+  return this.destroy();
+};
+mp.Vehicle.prototype.destroyStreamed = mp.Ped.prototype.destroyStreamed = mp.Player.prototype.destroyStreamed = destroyStreamed;
 
 mp.events.add("playerJoin", (player) => {
   player.variablesStreamed = {};  // all variables that are set on that players entity
@@ -105,9 +76,9 @@ mp.events.add("playerQuit", (player) => {
 });
 
 mp.events.add("esi", (player, entityType, entityId) => {
-  const entity = entityTypeToPool[entityType] ? entityTypeToPool[entityType].at(entityId) : false;
+  const entity = streamedEntityTypeToPool[entityType] ? streamedEntityTypeToPool[entityType].at(entityId) : false;
   
-  if (entity && entityTypeToPool[entityType].exists(entity)) { // DEBUG: console.log("[Core.entityStreamIn] " + player.name + " " + entityType + " " + entityId);
+  if (entity && streamedEntityTypeToPool[entityType].exists(entity)) { // DEBUG: console.log("[Core.entityStreamIn] " + player.name + " " + entityType + " " + entityId);
 
     if (!entity.streamed_players) entity.streamed_players = [player];
     else entity.streamed_players.push(player);
@@ -126,16 +97,19 @@ mp.events.add("esi", (player, entityType, entityId) => {
 });
 
 mp.events.add("eso", (player, entityType, entityId, numSameEntityTypesStreamed) => {
-  const entity = entityTypeToPool[entityType] ? entityTypeToPool[entityType].at(entityId) : false;
+  const entity = streamedEntityTypeToPool[entityType] ? streamedEntityTypeToPool[entityType].at(entityId) : false;
 
-  if (entity && entityTypeToPool[entityType].exists(entity)) { // DEBUG: //console.log("[Core.entityStreamOut] " + player.name + " " + entityType + " " + entityId + " streamed now: " + numSameEntityTypesStreamed);
-
+  if (entity && streamedEntityTypeToPool[entityType].exists(entity)) { // DEBUG: //console.log("[Core.entityStreamOut] " + player.name + " " + entityType + " " + entityId + " streamed now: " + numSameEntityTypesStreamed);
     if (!entity.streamed_players) entity.streamed_players = [];
     else entity.streamed_players = entity.streamed_players.filter(streamedPlayer => streamedPlayer != player);
     if (!player.streamed_entities) player.streamed_entities = [];
     else player.streamed_entities = player.streamed_entities.filter(streamedEntity => streamedEntity != entity);
 
     mp.events.call("entityStreamOut", player, entityType, entityId, entity, numSameEntityTypesStreamed);
+  } else {
+    if (!player.streamed_entities) player.streamed_entities = [];
+    else player.streamed_entities = player.streamed_entities.filter(streamedEntity => !(streamedEntity.type == entityType && streamedEntity.id == entityId));
+    if (player.entitiesStreamed) delete player.entitiesStreamed[entityType + entityId];
   }
 });
 
