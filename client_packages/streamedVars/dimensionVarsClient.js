@@ -31,6 +31,7 @@ const initEntity = (entity) => {
 const getVariableDimension = function (key) {
   return this.entity.dimensionVariables ? this.entity.dimensionVariables[key] : undefined;
 };
+mp.players.getVariableDimension = (player, key) => { return getVariableDimension.bind({ entity: player })(key); };
 
 const getVariableDimensionAsync = async function (key) {
   if (!this.entity || !mp[this.entity.type + 's'].exists(this.entity)) return null;
@@ -47,6 +48,7 @@ const getVariableDimensionAsync = async function (key) {
     mp.log("[getVariableDimensionAsync] " + error.stack);
   }
 };
+mp.players.getVariableDimensionAsync = (player, key) => { return getVariableDimensionAsync.bind({ entity: player })(key); };
 
 mp.events.add('setDimVariable', (entityType, entityID, key, data) => {
   if (!allowedEntities[entityType] || !mp[entityType + 's'].exists(parseInt(entityID))) return mp.log("[setVariableDimension] NOOOT setting " + key + " for " + entityType + " id " + entityID + " to value: " + data);
