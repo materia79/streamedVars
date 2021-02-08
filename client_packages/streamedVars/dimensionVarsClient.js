@@ -49,12 +49,13 @@ const getVariableDimensionAsync = async function (key) {
 };
 
 mp.events.add('setDimVariable', (entityType, entityID, key, data) => {
-  if (!allowedEntities[entityType] || !mp[entityType + 's'].exists(parseInt(entityID))) return;
+  if (!allowedEntities[entityType] || !mp[entityType + 's'].exists(parseInt(entityID))) return mp.log("[setVariableDimension] NOOOT setting " + key + " for " + entityType + " id " + entityID + " to value: " + data);
   const entity = mp[entityType + 's'].atRemoteId(parseInt(entityID));
   if (entity) {
+    mp.log("[setVariableDimension] setting " + key + " for " + entityType + " id " + entityID + " to value: " + data);
     if (!entity.dimensionVariables) initEntity(entity);
     // mp.log(`[setDimVariable] Setting dimension variable[${key}] with data ${JSON.stringify(data)}`);
     entity.dimensionVariables[key] = data;
     if (playerDataHandlers[key]) playerDataHandlers[key](entity, data);
-  }
+  } else mp.log("[setVariableDimension] NOT setting " + key + " for " + entityType + " id " + entityID + " to value: " + data);
 });

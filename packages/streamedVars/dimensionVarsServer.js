@@ -5,7 +5,7 @@ const setDimension = function (dim) {
       if (!this.dimensionVariables[key].persistent) delete this.dimensionVariables[key];  
     });
     mp.players.forEachInDimension(this.dimension, (p, id) => { 
-      dimensionVarHandling.bind({entity: this, player: p})();
+      dimensionVarHandling.bind({entity: p, player: this})();
     });  
   } else this.dimensionVariables = {};
   /* Feature: Choose to enable if you need the event.
@@ -57,7 +57,7 @@ mp.events.add({
 const updateDimensionVariables = function () { // Updates all dimension data from entities to specific player
   if (mp.players.exists(this.player)) {
     entityTypes.forEach(entityType => {
-      mp[entityType + 's'].forEachInDimension(this.dimension, (entity, id) => { 
+      mp[entityType].forEachInDimension(this.dimension, (entity, id) => { 
         dimensionVarHandling.bind({player: this.player, entity: entity})();
       });
     });
@@ -76,11 +76,15 @@ const syncDimensionVariable = function (key) { // Updates a certain dimension da
 const dimensionVarHandling = function () { // Handles dimension variables sync of a entity to other players. (All variables)
   if (!this.entity.dimensionVariables) this.entity.dimensionVariables = {};
   else {
-    if (this.entity.type == 'player' && this.entity.id == this.player.id) return;
+    if (this.entity.type == 'player' && this.entity.id == this.player.id) return console.log(this.entity.id + " -> " + this.player.id);
     Object.keys(this.entity.dimensionVariables).forEach(key => {
+      try {
       if (!this.entity.dimensionVariables[key].lastValue[this.player.id] || this.entity.dimensionVariables[key].lastValue[this.player.id] != this.entity.dimensionVariables[key].value) {
         this.player.call('setDimVariable', [this.entity.type, this.entity.id, key, this.entity.dimensionVariables[key].value]);
         this.entity.dimensionVariables[key].lastValue[this.player.id] = this.entity.dimensionVariables[key].value;
+        }
+      } catch (error) {
+        console.log("sdgsdgdffhds " + error.stack);
       }
     });
   }
