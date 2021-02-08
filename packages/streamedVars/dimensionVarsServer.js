@@ -4,16 +4,23 @@ const setDimension = function (dim) {
     Object.keys(this.dimensionVariables).forEach(key => {
       if (!this.dimensionVariables[key].persistent) delete this.dimensionVariables[key];  
     });
+    /*
     mp.players.forEachInDimension(dim, (p, id) => { 
       dimensionVarHandling.bind({entity: this, player: p})();
     });  
+    */
   } else this.dimensionVariables = {};
   /* Feature: Choose to enable if you need the event.
   mp.events.call('entityDimensionChange', this, dim, this.dimension);
   mp.players.call('entityDimensionChange', [this, dim, this.dimension]);
   */
   this.dimension = dim;
-  if (this.type == 'player') updateDimensionVariables.bind({player: this, dimension: dim})();
+  if (this.type == 'player') { 
+    mp.players.forEachInDimension(dim, (p, id) => { 
+      if (p.id != this.id) dimensionVarHandling.bind({entity: this, player: p})();
+    });  
+    updateDimensionVariables.bind({player: this, dimension: dim})();
+  }
 }
 mp.Player.prototype.setDimension = mp.Vehicle.prototype.setDimension = mp.Ped.prototype.setDimension = setDimension;
 const getVariableDimension = function (key) {
@@ -84,7 +91,7 @@ const dimensionVarHandling = function () { // Handles dimension variables sync o
         this.entity.dimensionVariables[key].lastValue[this.player.id] = this.entity.dimensionVariables[key].value;
         }
       } catch (error) {
-        console.log("sdgsdgdffhds " + error.stack);
+        console.log("[dimensionVarHandling] " + error.stack);
       }
     });
   }

@@ -1,12 +1,12 @@
 # Variables
 
 This resource represents proper synced data handling between entities in dimension and stream range. It's currently functional on the following entities:
-- '''player'''
-- '''ped'''
-- '''vehicle'''
+- **player**
+- **ped**
+- **vehicle**
 
 The following resource is currently maintained by [Project Unknown](https://discord.gg/FbVcFQj) and is compatible with [RAGE Multiplayer v1.1](https://rage.mp/)
-
+**NOTE**: This resource requires dependency [Base](https://github.com/materia79/base) in-order to process console logs. Otherwise remove any trace of `mp.log` in this resource.
 
 ## Streamed variables
 
@@ -48,7 +48,7 @@ mp.events.addDataHandlerStreamed("test", (entity, value) => {
 ## Dimension variables
 
 Globally synced variable data from entity to all clients in dimension. Usable to lower the load and have better network optimization for clients in other dimensions.
-'''NOTE''': This resourece only operates properly when using `entity.setDimension(dim);` instead of `entity.dimension = dim;` until RAGE Multiplayer implements an event that can detect dimension change.
+**NOTE**: This resourece only operates properly when using `entity.setDimension(dim);` instead of `entity.dimension = dim;` until RAGE Multiplayer implements an event that can detect dimension change.
 ### Server-side API
 
 #### entity.setDimension(dim)
