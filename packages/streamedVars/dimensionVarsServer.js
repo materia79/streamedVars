@@ -4,8 +4,8 @@ const setDimension = function (dim) {
     Object.keys(this.dimensionVariables).forEach(key => {
       if (!this.dimensionVariables[key].persistent) delete this.dimensionVariables[key];  
     });
-    mp.players.forEachInDimension(this.dimension, (p, id) => { 
-      dimensionVarHandling.bind({entity: p, player: this})();
+    mp.players.forEachInDimension(dim, (p, id) => { 
+      dimensionVarHandling.bind({entity: this, player: p})();
     });  
   } else this.dimensionVariables = {};
   /* Feature: Choose to enable if you need the event.
