@@ -84,7 +84,7 @@ const dimensionVarHandling = function () { // Handles dimension variables sync o
         this.entity.dimensionVariables[key].lastValue[this.player.id] = this.entity.dimensionVariables[key].value;
         }
       } catch (error) {
-        console.log("sdgsdgdffhds " + error.stack);
+        console.log("[dimensionVarHandling] " + error.stack);
       }
     });
   }
