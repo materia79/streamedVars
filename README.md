@@ -1,16 +1,19 @@
-# Variables
+# Variable types
 
-This resource represents proper synced data handling between entities in dimension and stream range. It's currently functional on the following entities:
+This resource allows entity variable data handling between entities only forwarded within dimension or stream range. It's currently functional on the following entities:
 - **player**
 - **ped**
 - **vehicle**
 
-The following resource is currently maintained by [Project Unknown](https://discord.gg/FbVcFQj) and is compatible with [RAGE Multiplayer v1.1](https://rage.mp/)
-**NOTE**: This resource requires dependency [Base](https://github.com/materia79/base) in-order to process console logs. Otherwise remove any trace of `mp.log` in this resource.
+This resource is created and maintained by the [Project Unknown](https://discord.gg/FbVcFQj) team and requires [RAGE Multiplayer v1.1](https://rage.mp/).
+
+**NOTE**: This resource requires dependency [Base](https://github.com/materia79/base) in-order to process console logs (which might be removed in the near future). Otherwise remove any trace of `mp.log` in this resource.
+
+Check also the [Base](https://github.com/materia79/base) component [module loader](https://github.com/materia79/base/tree/master/modules) out which allows you to add multiple resources directly from git repositories as a submodule to your server project`s main git which helps you to expose parts of your server project to co devs without granting full repository access!
 
 ## Streamed variables
 
-Totally synced variable data from entity to clients in stream range. Usable to lower the load and have better network optimization on other clients out of stream range.
+Entity variable data handling between entities and clients only forwarded within dimension or stream range. Useful to reduce the load and have better network optimization on other clients out of stream range.
 
 ### Server-side API
 #### entity.setVariableStreamed(key, value)
@@ -38,9 +41,20 @@ let result = await player.getVariableStreamedAsync("test");
 
 #### mp.events.addDataHandlerStreamed(key, callback)
 
-Works like the regular variable datahandler except it will only announce updated streamed variables
+Works like the regular variable dataHandler except it will only announce updated streamed variables
 ```js
 mp.events.addDataHandlerStreamed("test", (entity, value) => {
+  mp.gui.chat.push("entity type: " + entity.type + " id: " + entity.remoteId + " changed its value: " + value);
+});
+```
+
+**NOTE:** You can only add one streamed dataHandler per key for now.
+
+#### mp.events.removeDataHandlerStreamed(key, callback)
+
+Removes a previously created dataHandler for the case the same key is used in different situations.
+```js
+mp.events.removeDataHandlerStreamed("test", (entity, value) => {
   mp.gui.chat.push("entity type: " + entity.type + " id: " + entity.remoteId + " changed its value: " + value);
 });
 ```
@@ -48,7 +62,10 @@ mp.events.addDataHandlerStreamed("test", (entity, value) => {
 ## Dimension variables
 
 Globally synced variable data from entity to all clients in dimension. Usable to lower the load and have better network optimization for clients in other dimensions.
+
 **NOTE**: This resourece only operates properly when using `entity.setDimension(dim);` instead of `entity.dimension = dim;` until RAGE Multiplayer implements an event that can detect dimension change.
+
+(And when you are on it George: PLEASE add `entityStreamIn => (entity, forPlayer)` and `entityStreamOut => (entity, forPlayer)` server events triggering for player, peds and vehicles similar to the non working `playerStreamIn` events serverside. Thanks! That would simplify this resource alot already!😏)
 ### Server-side API
 
 #### entity.setDimension(dim)
