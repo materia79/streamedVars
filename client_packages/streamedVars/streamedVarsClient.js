@@ -50,7 +50,12 @@ localPlayer.getVariableStreamedAsync = async function (key, waitTime = 10) {
 };
 
 mp.events.addDataHandlerStreamed = (key, func) => {
+  if (playerVariablesDataHandler[key]) return;
   if (key && typeof func == "function") playerVariablesDataHandler[key] = func;
+};
+
+mp.events.removeDataHandlerStreamed = (key, func) => {
+  if (playerVariablesDataHandler[key] && playerVariablesDataHandler[key] == func) delete playerVariablesDataHandler[key];
 };
 
 mp.events.add("setVariableStreamed", (entityId, entityType, key, value) => {
