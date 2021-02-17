@@ -18,7 +18,7 @@ const setDimension = function (dim) {
 mp.Player.prototype.setDimension = mp.Vehicle.prototype.setDimension = mp.Ped.prototype.setDimension = setDimension;
 const getVariableDimension = function (key) {
   if (!this.dimensionVariables) this.dimensionVariables = {};
-  return mp[this.type + 's'].exists(this) && this.dimensionVariables[key] ? this.dimensionVariables[key].value : undefined;
+  return this && mp[this.type + 's'].exists(this) && this.dimensionVariables[key] ? this.dimensionVariables[key].value : undefined;
 };
 mp.Player.prototype.getVariableDimension = mp.Vehicle.prototype.getVariableDimension = mp.Ped.prototype.getVariableDimension = getVariableDimension;
 
@@ -89,22 +89,3 @@ const dimensionVarHandling = function () { // Handles dimension variables sync o
     });
   }
 };
-/*
-mp.events.addCommand('testDim', (player) => {
-  let pos = player.position;
-  pos.x += 2;
-  pos.y += 2;
-  let v = mp.vehicles.new(mp.joaat("turismor"), pos,
-  {
-      numberPlate: "ADMIN",
-      color: [[255, 0, 0],[255,0,0]],
-      dimension: player.dimension
-  });
-  player.outputChatBox('Setting Dimension variable for veh ' + v.id);
-  v.setDimensionVariable("key1", "hello", true);
-  // v.setDimension(6); // Makes key1 undefined
-  setTimeout(_ => {
-    player.outputChatBox('Getting Dimension variable ' + v.getDimensionVariable('key1'));
-  }, 3500);
-});
-*/

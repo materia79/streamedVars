@@ -19,7 +19,32 @@ localPlayer.getDimensionVariableAsync = async function (key, waitTime = 10) {
 };
 
 mp.events.addDataHandlerDimension = (key, func) => {
-  if (key && typeof func == "function") playerDataHandlers[key] = func;
+  if (key && typeof func == "function") {
+    if (!playerDataHandlers[key]) {
+      playerDataHandlers[key] =  [];
+    } else {
+      let funcIdx = playerDataHandlers[key].indexOf(func);
+      if (funcIdx !== -1) return mp.log('[addDataHandlerDimension] DataHandler for this function already exists for the following key: ' + key);
+    }
+    playerDataHandlers[key].push(func);
+  } else {
+    return mp.log('[addDataHandlerDimension] Invalid parameters');
+  }
+};
+
+mp.events.removeDataHandlerDimension = (key, func = null) => {
+  if (key && playerDataHandlers[key]) {
+    if (typeof func == 'func') {
+      let funcIdx = playerDataHandlers[key].indexOf(func);
+      if (funcIdx == -1) return false;
+      playerDataHandlers[key].splice(funcIdx, 1);
+      if (playerDataHandlers[key].length == 0) delete playerDataHandlers[key];
+    } else {
+      delete playerDataHandlers[key];
+    }
+  } else {
+    return mp.log('[removeDataHandlerDimension] No dataHandlers exist for the following key: ' + key);
+  }
 };
 
 const initEntity = (entity) => {
@@ -58,6 +83,6 @@ mp.events.add('setDimVariable', (entityType, entityID, key, data) => {
     if (!entity.dimensionVariables) initEntity(entity);
     // mp.log(`[setDimVariable] Setting dimension variable[${key}] with data ${JSON.stringify(data)}`);
     entity.dimensionVariables[key] = data;
-    if (playerDataHandlers[key]) playerDataHandlers[key](entity, data);
+    if (playerDataHandlers[key]) playerDataHandlers[key].forEach(dataHandler => dataHandler(key, data));
   } else mp.log("[setVariableDimension] NOT setting " + key + " for " + entityType + " id " + entityID + " to value: " + data);
 });
