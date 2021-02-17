@@ -112,3 +112,15 @@ mp.events.addDataHandlerDimension("giga", (entity, value) => {
   mp.gui.chat.push("entity type: " + entity.type + " id: " + entity.remoteId + " at dimension: " + entity.dimension + "changed its value: " + value);
 });
 ```
+
+#### mp.events.removeDataHandlerDimension(key, callback = null)
+Removes dimension dataHandler by key & function scope. If function scope wasn't specified, it'll delete all dataHandler functions related to the key.
+
+```js
+const customCrap = (entity, value) => {
+  mp.gui.chat.push("entity type: " + entity.type + " id: " + entity.remoteId + " at dimension: " + entity.dimension + "changed its value: " + value);
+};
+mp.events.addDataHandlerDimension("krustyCrap", customCrap);
+// mp.events.removeDataHandlerDimension("krustyCrap");
+mp.events.removeDataHandlerDimension("krustyCrap", customCrap);
+```
