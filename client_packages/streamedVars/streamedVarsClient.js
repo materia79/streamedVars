@@ -6,7 +6,21 @@ const streamedEntityTypeToPool = {
   "ped": mp.peds,
   "vehicle": mp.vehicles
 };
-mp.events.streamedEntityTypeToPool = streamedEntityTypeToPool;
+const streamedEntityTypeToEventNameIn = {
+  "player": "playerStreamIn",
+  "ped": "pedStreamIn",
+  "vehicle": "vehicleStreamIn"
+}
+const streamedEntityTypeToEventNameOut = {
+  "player": "playerStreamOut",
+  "ped": "pedStreamOut",
+  "vehicle": "vehicleStreamOut"
+}
+
+// Use these globals to activate/deactivate streaming of types clientside as your application requires!
+mp.events.streamedEntityTypeToPool = streamedEntityTypeToPool; 
+mp.events.streamedEntityTypeToEventName = streamedEntityTypeToEventNameIn;
+mp.events.streamedEntityTypeToEventName = streamedEntityTypeToEventNameOut;
 
 const initEntity = (entity) => {
   entity.variablesStreamed = {};
@@ -73,11 +87,13 @@ mp.events.add("entityStreamIn", (entity) => {
     entity.pool = streamedEntityTypeToPool[entity.type];
     if (!entity.variablesStreamed) initEntity(entity); // everything else seem to be unreliable :c
     mp.events.callRemote("esi", entity.type, entity.remoteId);
+    if (streamedEntityTypeToEventNameIn[entity.type]) mp.events.call(streamedEntityTypeToEventNameIn[entity.type], entity);
   }
 });
 
 mp.events.add("entityStreamOut", (entity) => {
   if (streamedEntityTypeToPool[entity.type]) mp.events.callRemote("eso", entity.type, entity.remoteId, streamedEntityTypeToPool[entity.type].streamed.length);
+  if (streamedEntityTypeToEventNameOut[entity.type]) mp.events.call(streamedEntityTypeToEventNameOut[entity.type], entity);
 });
 
 /* test works
