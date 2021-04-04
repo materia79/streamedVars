@@ -76,7 +76,7 @@ const syncDimensionVariable = function (key) { // Updates a certain dimension da
 const dimensionVarHandling = function () { // Handles dimension variables sync of a entity to other players. (All variables)
   if (!this.entity.dimensionVariables) this.entity.dimensionVariables = {};
   else {
-    if (this.entity.type == 'player' && this.entity.id == this.player.id) return console.log(this.entity.id + " -> " + this.player.id);
+    if (this.entity.type == 'player' && this.entity.id == this.player.id) return; //console.log(this.entity.id + " -> " + this.player.id);
     Object.keys(this.entity.dimensionVariables).forEach(key => {
       try {
       if (!this.entity.dimensionVariables[key].lastValue[this.player.id] || this.entity.dimensionVariables[key].lastValue[this.player.id] != this.entity.dimensionVariables[key].value) {
