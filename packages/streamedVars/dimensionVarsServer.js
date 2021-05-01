@@ -35,6 +35,7 @@ const setVariableDimension = function (key, data, persistent = true) {
     if (this.id == p.id) return;
     syncDimensionVariable.bind({entity: this, player: p})(key);
   });
+  return this;
 }
 mp.Player.prototype.setVariableDimension = mp.Vehicle.prototype.setVariableDimension = mp.Ped.prototype.setVariableDimension = setVariableDimension;
 

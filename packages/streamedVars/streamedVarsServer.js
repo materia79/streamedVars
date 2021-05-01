@@ -7,7 +7,10 @@ mp.events.streamedEntityTypeToPool = streamedEntityTypeToPool;
 
 // Set a variable that is only sent to other players when they have that player with variable set streamed in
 const playerSetVarStreamed = function (key, value) {
-  if (this.variablesStreamed[key] == value) return console.log(`[${this.type}.setVariableStreamed] value did not change!`);
+  if (this.variablesStreamed[key] == value) {
+    console.log(`[${this.type}.setVariableStreamed] value did not change!`);
+    return this;
+  }
   this.variablesStreamed[key] = { value: value, lastValue: {} };
   this.call("setVariableStreamed", [this.id, this.type, key, value]);
   
@@ -18,11 +21,15 @@ const playerSetVarStreamed = function (key, value) {
     });
     mp.players.call(this.streamed_players, "setVariableStreamed", [this.id, this.type, key, value]);
   }
+  return this;
 };
 
 const entitySetVarStreamed = function (key, value) {
   if (!this.variablesStreamed) this.variablesStreamed = {};
-  if (this.variablesStreamed[key] == value) return console.log(`[${this.type}.setVariableStreamed] value did not change!`);
+  if (this.variablesStreamed[key] == value) {
+    console.log(`[${this.type}.setVariableStreamed] value did not change!`);
+    return this;
+  }
   this.variablesStreamed[key] = { value: value, lastValue: {} };
   
   if (!this.streamed_players) this.streamed_players = [];
@@ -32,6 +39,7 @@ const entitySetVarStreamed = function (key, value) {
     });
     mp.players.call(this.streamed_players, "setVariableStreamed", [this.id, this.type, key, value]);
   }
+  return this;
 };
 mp.Player.prototype.setVariableStreamed = playerSetVarStreamed;
 mp.Vehicle.prototype.setVariableStreamed = mp.Ped.prototype.setVariableStreamed = entitySetVarStreamed;
