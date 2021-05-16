@@ -41,8 +41,16 @@ const entitySetVarStreamed = function (key, value) {
   }
   return this;
 };
+
+const setVarsStreamed = function (object) {
+  Object.keys(object).forEach((key) => { this.setVariableStreamed(key, object[key]); });
+  return this;
+};
+
 mp.Player.prototype.setVariableStreamed = playerSetVarStreamed;
+mp.Player.prototype.setVariablesStreamed = setVarsStreamed;
 mp.Vehicle.prototype.setVariableStreamed = mp.Ped.prototype.setVariableStreamed = entitySetVarStreamed;
+mp.Vehicle.prototype.setVariablesStreamed = mp.Ped.prototype.setVariablesStreamed = setVarsStreamed;
 
 const playerGetVarStreamed = function (key) {
   return this.variablesStreamed[key] ? this.variablesStreamed[key].value : undefined;
