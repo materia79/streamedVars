@@ -13,6 +13,7 @@ const setDimension = function (dim) {
   mp.players.call('entityDimensionChange', [this, dim, this.dimension]);
   */
   this.dimension = dim;
+  this.call('dimensionChange');
   if (this.type == 'player') updateDimensionVariables.bind({player: this, dimension: dim})();
 }
 mp.Player.prototype.setDimension = mp.Vehicle.prototype.setDimension = mp.Ped.prototype.setDimension = setDimension;
