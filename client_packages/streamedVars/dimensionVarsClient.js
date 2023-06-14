@@ -38,7 +38,7 @@ mp.events.addDataHandlerDimension = (key, func) => {
 
 mp.events.removeDataHandlerDimension = (key, func = null) => {
   if (key && playerDataHandlers[key]) {
-    if (typeof func == 'func') {
+    if (typeof func == 'function') {
       let funcIdx = playerDataHandlers[key].indexOf(func);
       if (funcIdx == -1) return false;
       playerDataHandlers[key].splice(funcIdx, 1);
@@ -63,7 +63,7 @@ const getVariableDimension = function (key) {
 };
 mp.players.getVariableDimension = (player, key) => { return getVariableDimension.bind({ entity: player })(key); };
 
-const getVariableDimensionAsync = async function (key) {
+const getVariableDimensionAsync = async function (key, waitTime = 10) {
   if (!this.entity || !mp[this.entity.type + 's'].exists(this.entity)) return null;
   try {
   while(mp[this.entity.type + 's'].exists(this.entity)) {
@@ -73,7 +73,7 @@ const getVariableDimensionAsync = async function (key) {
     await mp.game.waitAsync(waitTime);
   }
   return null;
-  } catch (e) {
+  } catch (error) {
     if (mp.log) mp.log("[getVariableDimensionAsync] " + error.stack);
   }
 };
