@@ -18,6 +18,11 @@ const playerSetVarStreamed = function (key, value) {
   else if (this.streamed_players.length) {
     this.streamed_players.forEach((player) => {
       if (mp.players.exists(player)) this.variablesStreamed[key].lastValue[player.id] = value;
+      else {
+        // for some reason this happened before... probably an error outside of here so gotta watch it.
+        console.log(mp.tty.yellow + "[StreamedVars.playerSetVarStreamed] Error player did not exist anymore! Removing...");
+        this.streamed_players = this.streamed_players.filter(e => e != player);
+      }
     });
     mp.players.call(this.streamed_players, "setVariableStreamed", [this.id, this.type, key, value]);
   }
