@@ -83,9 +83,9 @@ mp.events.add('setDimVariable', (entityType, entityID, key, data) => {
   if (!allowedEntities[entityType]) return mp.log(`[setVariableDimension] Disallowed entity type, not setting ${key} for ${entityType} (${entityID}) to value: ${data}`);
   const entity = mp[entityType + 's'].atRemoteId(parseInt(entityID));
   
-  if (mp[entityType + 's'].exists(entity)) { // DEBUG: // if(mp.log) mp.log("[setVariableDimension] setting " + key + " for " + entityType + " id " + entityID + " to value: " + data);
-    if (!entity.dimensionVariables) initEntity(entity); // DEBUG: // if(mp.log) mp.log(`[setDimVariable] Setting dimension variable[${key}] with data ${JSON.stringify(data)}`);
+  if (mp[entityType + 's'].exists(entity)) { // DEBUG: //if (mp.log) mp.log("[setVariableDimension] setting " + key + " for " + entityType + " id " + entityID + " to value: " + data);
+    if (!entity.dimensionVariables) initEntity(entity); // DEBUG: //if (mp.log && key == "state") mp.log(`[setDimVariable] Setting dimension variable[${key}] with data ${JSON.stringify(data)} for ${entityType} (${entityID})`);
     entity.dimensionVariables[key] = data;
     if (playerDataHandlers[key]) playerDataHandlers[key].forEach(dataHandler => dataHandler(entity, data));
-  } // else mp.log(`[setVariableDimension.post] ${entityType} (${entityID}) does not exist anymore. Not setting ${key} to value: ${data} anymore.`);
+  } // DEBUG: //else if (mp.log && key == "state") mp.log(`[setVariableDimension.post] ${entityType} (${entityID}) does not exist anymore. Not setting ${key} to value: ${data} anymore.`);
 });
