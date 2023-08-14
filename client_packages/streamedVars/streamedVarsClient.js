@@ -17,10 +17,15 @@ const streamedEntityTypeToEventNameOut = {
   "vehicle": "vehicleStreamOut"
 }
 
+const events = mp.events;
+
 // Use these globals to activate/deactivate streaming of types clientside as your application requires!
-mp.events.streamedEntityTypeToPool = streamedEntityTypeToPool; 
-mp.events.streamedEntityTypeToEventName = streamedEntityTypeToEventNameIn;
-mp.events.streamedEntityTypeToEventName = streamedEntityTypeToEventNameOut;
+events.streamedEntityTypeToPool = streamedEntityTypeToPool; 
+events.streamedEntityTypeToEventName = streamedEntityTypeToEventNameIn;
+events.streamedEntityTypeToEventName = streamedEntityTypeToEventNameOut;
+
+// disable streaming completely (with server)
+events.streamingEnabled = true;
 
 const initEntity = (entity) => {
   entity.variablesStreamed = {};
@@ -63,16 +68,16 @@ localPlayer.getVariableStreamedAsync = async function (key, waitTime = 10) {
   }
 };
 
-mp.events.addDataHandlerStreamed = (key, func) => {
+events.addDataHandlerStreamed = (key, func) => {
   if (playerVariablesDataHandler[key]) return;
   if (key && typeof func == "function") playerVariablesDataHandler[key] = func;
 };
 
-mp.events.removeDataHandlerStreamed = (key, func) => {
+events.removeDataHandlerStreamed = (key, func) => {
   if (playerVariablesDataHandler[key] && playerVariablesDataHandler[key] == func) delete playerVariablesDataHandler[key];
 };
 
-mp.events.add("setVariableStreamed", (entityId, entityType, key, value) => {
+events.add("setVariableStreamed", (entityId, entityType, key, value) => {
   const entity = streamedEntityTypeToPool[entityType] ? streamedEntityTypeToPool[entityType].atRemoteId(entityId) : undefined;
 
   if (entity) { // DEBUG: //mp.log("[setVariableStreamed] setting " + key + " for " + entityType + " id " + entityId + " to value: " + value);
@@ -82,22 +87,22 @@ mp.events.add("setVariableStreamed", (entityId, entityType, key, value) => {
   }
 });
 
-mp.events.add("entityStreamIn", (entity) => {
+events.add("entityStreamIn", (entity) => {
   if (streamedEntityTypeToPool[entity.type]) {
     entity.pool = streamedEntityTypeToPool[entity.type];
     if (!entity.variablesStreamed) initEntity(entity); // everything else seem to be unreliable :c
-    mp.events.callRemote("esi", entity.type, entity.remoteId);
-    if (streamedEntityTypeToEventNameIn[entity.type]) mp.events.call(streamedEntityTypeToEventNameIn[entity.type], entity);
+    if (events.streamingEnabled && entity.remoteId != 65535) events.callRemote("esi", entity.type, entity.remoteId);
+    if (streamedEntityTypeToEventNameIn[entity.type]) events.call(streamedEntityTypeToEventNameIn[entity.type], entity);
   }
 });
 
-mp.events.add("entityStreamOut", (entity) => {
-  if (streamedEntityTypeToPool[entity.type]) mp.events.callRemote("eso", entity.type, entity.remoteId, streamedEntityTypeToPool[entity.type].streamed.length);
-  if (streamedEntityTypeToEventNameOut[entity.type]) mp.events.call(streamedEntityTypeToEventNameOut[entity.type], entity);
+events.add("entityStreamOut", (entity) => {
+  if (events.streamingEnabled && entity.remoteId != 65535) if (streamedEntityTypeToPool[entity.type]) events.callRemote("eso", entity.type, entity.remoteId, streamedEntityTypeToPool[entity.type].streamed.length);
+  if (streamedEntityTypeToEventNameOut[entity.type]) events.call(streamedEntityTypeToEventNameOut[entity.type], entity);
 });
 
 /* test works
-mp.events.addDataHandlerStreamed("selftest", (entity, value) => {
+events.addDataHandlerStreamed("selftest", (entity, value) => {
   mp.log("[streamedVars.DataHandler.selftest] type: " + entity.type + " id: " + entity.remoteId + ", value: " + value);
 });
 (async () => {
