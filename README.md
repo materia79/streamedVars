@@ -5,7 +5,7 @@ This resource allows entity variable data handling between entities only forward
 - **ped**
 - **vehicle**
 
-This resource is created and maintained by the [Project Unknown](https://discord.gg/FbVcFQj) team and requires [RAGE Multiplayer v1.1](https://rage.mp/).
+This resource is created and maintained by the [Project Unknown](https://discord.gg/3sqHSzy) team and requires [RAGE Multiplayer v1.1](https://rage.mp/).
 
 **NOTE**: This resource requires dependency [Base](https://github.com/materia79/base) in-order to process console logs (which might be removed in the near future). Otherwise remove any trace of `mp.log` in this resource.
 
