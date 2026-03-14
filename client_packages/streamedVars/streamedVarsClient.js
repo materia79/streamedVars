@@ -21,8 +21,8 @@ const events = mp.events;
 
 // Use these globals to activate/deactivate streaming of types clientside as your application requires!
 events.streamedEntityTypeToPool = streamedEntityTypeToPool; 
-events.streamedEntityTypeToEventName = streamedEntityTypeToEventNameIn;
-events.streamedEntityTypeToEventName = streamedEntityTypeToEventNameOut;
+events.streamedEntityTypeToEventNameIn = streamedEntityTypeToEventNameIn;
+events.streamedEntityTypeToEventNameOut = streamedEntityTypeToEventNameOut;
 
 // disable streaming completely (with server)
 events.streamingEnabled = true;
