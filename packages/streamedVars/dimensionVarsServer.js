@@ -1,13 +1,17 @@
 const entityTypes = ["players", "vehicles", "peds"];
 
 const setDimension = function (dimension) {
-  if (this.dimension == dimension) return console.log(`[Prototype.player.setDimension] ${mp.tty.yellow}${this.name} was already in dimension ${dimension}${mp.tty.normal}`);
+  const entityCollection = this && this.type ? mp[this.type + 's'] : null;
+  const targetDimension = parseInt(dimension, 10);
+
+  if (!entityCollection || !entityCollection.exists(this) || isNaN(targetDimension)) return this;
+  if (this.dimension == targetDimension) return this;
 
   if (this.dimensionVariables) {
     Object.keys(this.dimensionVariables).forEach(key => {
       if (!this.dimensionVariables[key].persistent) delete this.dimensionVariables[key];  
     });
-    mp.players.forEachInDimension(dimension, (player, id) => {
+    mp.players.forEachInDimension(targetDimension, (player, id) => {
       dimensionVarHandling.bind({ entity: player, player: this })();
     });  
   } else this.dimensionVariables = {};
@@ -15,11 +19,12 @@ const setDimension = function (dimension) {
   mp.events.call('entityDimensionChange', this, dimension, this.dimension);
   mp.players.call('entityDimensionChange', [this, dimension, this.dimension]);
   */
-  this.dimension = dimension;
+  this.dimension = targetDimension;
   if (this.type == 'player') {
     this.call('dimensionChange');
-    updateDimensionVariables.bind({player: this, dimension: dimension})();
+    updateDimensionVariables.bind({player: this, dimension: targetDimension})();
   }
+  return this;
 }
 mp.Player.prototype.setDimension = mp.Vehicle.prototype.setDimension = mp.Ped.prototype.setDimension = setDimension;
 const getVariableDimension = function (key) {
